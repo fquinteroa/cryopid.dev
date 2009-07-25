@@ -28,12 +28,12 @@ static void libc_hack_load(char* data)
     if (!emulate_tls && r->xgs != 0) {
 	*dest++=0x66;*dest++=0xb8; *(short*)(dest) = r->xgs; dest+=2; /* mov foo, %eax  */
 	*dest++=0x8e;*dest++=0xe8; /* mov %eax, %gs */
-    }
-    *dest++=0xba;*dest++=0x00;*dest++=0x00;*dest++=0x00;*dest++=0x00; /* mov $0x00, %edx */
-    *dest++=0xb9;*dest++=0x00;*dest++=0x00;*dest++=0x00;*dest++=0x00; /* mov $0x00, %ecx */
+	*dest++=0xba;*dest++=0x00;*dest++=0x00;*dest++=0x00;*dest++=0x00; /* mov $0x00, %edx */
+	*dest++=0xb9;*dest++=0x00;*dest++=0x00;*dest++=0x00;*dest++=0x00; /* mov $0x00, %ecx */
 
-    /* insert the assembly code of __getpid */
-    memcpy(dest, data, SIGNATURE_LENGTH);
+	/* insert the assembly code of __getpid */
+	memcpy(dest, data, SIGNATURE_LENGTH);
+    }
 
     /* restoring VMA previous settings */
     syscall_check(
