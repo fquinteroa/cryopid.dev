@@ -57,6 +57,9 @@ static void read_process()
     if (do_pause)
 	sleep(2);
 
+    #ifdef __i386__
+    jump_to_getpid_hack();
+    #endif
     jump_to_trampoline();
 }
 
@@ -137,7 +140,7 @@ void real_main(int argc, char** argv)
 		long_options, &option_index);
 	if (c == -1)
 	    break;
-	switch(c) {
+	switch (c) {
 	    case 'd':
 		action &= ~ACTION_LOAD;
 		action |= ACTION_PRINT;

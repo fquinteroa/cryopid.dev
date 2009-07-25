@@ -9,6 +9,10 @@
 #include "cpimage.h"
 #include "process.h"
 #include "cryopid.h"
+#ifdef __i386__
+#include "getpid_hack.h"
+static struct cp_chunk *gp_chunk = NULL;
+#endif
 
 unsigned long scribble_zone = 0; /* somewhere to scribble on in child */
 unsigned long syscall_loc   = 0; /* address of a syscall instruction  */
@@ -31,6 +35,13 @@ void write_chunk_vma(void *fptr, struct cp_vma *data)
     if (data->have_data)
 	write_bit(fptr, data->data, data->length);
 }
+
+#ifdef __i386__
+void fetch_chunk_libcgp(struct cp_chunk** ptr)
+{
+    *ptr = gp_chunk;
+}
+#endif
 
 static int get_one_vma(pid_t pid, char* line, struct cp_vma *vma,
 	int get_library_data, int vma_no, long *bin_offset)
@@ -256,7 +267,7 @@ static int get_one_vma(pid_t pid, char* line, struct cp_vma *vma,
 	unsigned int c;
 	static char buf[4096];
 
-	keep_vma_data = 1; /* Assume guiltly until proven innocent */
+	keep_vma_data = 1; /* Assume guilty until proven innocent */
 
 	if ((lfd = open(vma->filename, O_RDONLY)) == -1)
 	    goto out;
@@ -357,6 +368,15 @@ void fetch_chunks_vma(pid_t pid, int flags, struct list *l, long *bin_offset)
 		    i = work_list.head;
 		continue;
 	}
+    #ifdef __i386__
+	if (chunk->vma.filename != NULL)
+	    if ((strstr(chunk->vma.filename, "libc") != NULL) && !gp_chunk) {
+		info("[+] libc mapping found: %s\n", chunk->vma.filename);
+		gp_chunk = xmalloc(sizeof(struct cp_chunk));
+		gp_chunk->type = CP_CHUNK_GETPID;
+		libc_hack_fetch(chunk->vma.filename, &gp_chunk->signature.asmcode);
+	    }
+    #endif
 	vma_no++;
 	list_append(l, chunk);
 	chunk = NULL;

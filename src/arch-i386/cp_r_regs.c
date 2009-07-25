@@ -12,6 +12,11 @@
 extern int need_gtk;
 #endif
 
+static struct user user;
+
+struct user_regs_struct* regs(void) {
+    return &user.regs;
+}
 
 static void load_chunk_regs(struct user *user, int stopped)
 {
@@ -94,6 +99,8 @@ static void load_chunk_regs(struct user *user, int stopped)
     *(unsigned long*)(cp) = r->eip; cp+= 4;
     asm("mov %%cs,%w0": "=q"(r->xcs)); /* ensure we use the right CS for the current kernel */
     *(unsigned short*)(cp) = r->xcs; cp+= 2; /* jmp cs:foo */
+
+    /* restoring VMA previous settings */
     syscall_check(
 	(int)mprotect((void*)TRAMPOLINE_ADDR, _getpagesize, PROT_READ|PROT_EXEC),
 	    0, "mmap");
@@ -101,7 +108,6 @@ static void load_chunk_regs(struct user *user, int stopped)
 
 void read_chunk_regs(void *fptr, int action)
 {
-    struct user user;
     int stopped;
     read_bit(fptr, &user, sizeof(struct user));
     read_bit(fptr, &stopped, sizeof(int));
@@ -112,7 +118,7 @@ void read_chunk_regs(void *fptr, int action)
 		user.regs.eax, user.regs.ebx, user.regs.ecx, user.regs.edx);
 	fprintf(stderr, "\tesi: 0x%08lx edi: 0x%08lx ebp: 0x%08lx esp: 0x%08lx\n",
 		user.regs.esi, user.regs.edi, user.regs.ebp, user.regs.esp);
-	fprintf(stderr, "\t ds: 0x%08x  es: 0x%08x  fs: 0x%08x  gs: 0x%08x\n",
+	fprintf(stderr, "\t ds: 0x%08lx  es: 0x%08lx  fs: 0x%08lx  gs: 0x%08lx\n",
 		user.regs.xds, user.regs.xes, user.regs.xfs, user.regs.xgs);
 	fprintf(stderr, "\teip: 0x%08lx eflags: 0x%08lx",
 		user.regs.eip, user.regs.eflags);

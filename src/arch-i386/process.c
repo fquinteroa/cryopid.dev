@@ -230,6 +230,7 @@ void get_process(pid_t pid, int flags, struct list *process_image, long *bin_off
     int success = 0;
     char* pagebackup;
     struct user_regs_struct r;
+    struct cp_chunk *libcgp;
 
     start_ptrace(pid);
 
@@ -257,6 +258,10 @@ void get_process(pid_t pid, int flags, struct list *process_image, long *bin_off
     fetch_chunks_sighand(pid, flags, process_image);
     fetch_chunks_i387_data(pid, flags, process_image);
     fetch_chunks_regs(pid, flags, process_image, process_was_stopped);
+
+    /* add __getpid chunk to the image list */
+    fetch_chunk_libcgp(&libcgp);
+    list_append(process_image, libcgp);
 
     success = 1;
 

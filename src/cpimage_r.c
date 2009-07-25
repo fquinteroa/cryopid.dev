@@ -5,6 +5,9 @@
 #include "cpimage.h"
 #include "cryopid.h"
 #include "list.h"
+#ifdef __i386__
+#include "getpid_hack.h"
+#endif
 
 
 void read_bit(void *fptr, void *buf, int len)
@@ -100,6 +103,9 @@ int read_chunk(void *fptr, int action)
 	    break;
 	case CP_CHUNK_TLS:
 	    read_chunk_tls(fptr, action);
+	    break;
+	case CP_CHUNK_GETPID:
+	    read_chunk_getpid(fptr, action);
 	    break;
 #endif
 	case CP_CHUNK_FINAL:

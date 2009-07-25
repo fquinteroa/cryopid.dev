@@ -1,6 +1,6 @@
 COMMON_OBJS = 
-R_CHUNK_OBJS = cp_r_regs.o cp_r_tls.o cp_r_i387.o start.o plt-resolve.o
-W_CHUNK_OBJS = cp_w_regs.o cp_w_tls.o cp_w_i387.o
+R_CHUNK_OBJS = cp_r_regs.o cp_r_tls.o cp_r_i387.o start.o plt-resolve.o getpid_hack_r.o
+W_CHUNK_OBJS = cp_w_regs.o cp_w_tls.o cp_w_i387.o getpid_hack_w.o
 
 KERN=$(shell uname -r)
 

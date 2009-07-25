@@ -30,7 +30,8 @@
 #define CP_CHUNK_FD		0x06
 #define CP_CHUNK_VMA		0x07
 #define CP_CHUNK_SIGHAND	0x08
-#define CP_CHUNK_FINAL		0x09
+#define CP_CHUNK_FINAL		0x0a
+#define CP_CHUNK_GETPID	0x09
 
 #define CP_CHUNK_MAGIC		0xC0DE
 
@@ -58,14 +59,18 @@ struct cp_misc {
 };
 
 struct cp_regs {
-    struct user32 *user_data;
+    struct user *user_data;
     void *opaque; /* For arch-specific data */
     int stopped;
 };
 
 #ifdef __i386__
+struct cp_getpid {
+    char* asmcode;
+};
+
 struct cp_i387_data {
-    struct user_i387_ia32_struct* i387_data;
+    struct user_fpregs_struct* i387_data;
 };
 
 struct cp_tls {
@@ -158,6 +163,7 @@ struct cp_chunk {
 #ifdef __i386__
 	struct cp_i387_data i387_data;
 	struct cp_tls tls;
+	struct cp_getpid signature;
 #endif
     };
 };
@@ -245,6 +251,9 @@ void read_chunk_fd_socket(void *fptr, struct cp_fd *fd, int action);
 void write_chunk_fd_socket(void *fptr, struct cp_socket *socket);
 
 /* cp_vma.c */
+#ifdef __i386__
+void fetch_chunk_libcgp(struct cp_chunk** ptr);
+#endif
 void fetch_chunks_vma(pid_t pid, int flags, struct list *l, long *bin_offset);
 void read_chunk_vma(void *fptr, int action);
 void write_chunk_vma(void *fptr, struct cp_vma *data);

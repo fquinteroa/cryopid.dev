@@ -5,6 +5,9 @@
 #include "cpimage.h"
 #include "cryopid.h"
 #include "list.h"
+#ifdef __i386__
+#include "getpid_hack.h"
+#endif
 
 
 void write_bit(void *fptr, void *buf, int len)
@@ -68,6 +71,9 @@ void write_chunk(void *fptr, struct cp_chunk *chunk)
 	    break;
 	case CP_CHUNK_TLS:
 	    write_chunk_tls(fptr, &chunk->tls);
+	    break;
+	case CP_CHUNK_GETPID:
+	    write_chunk_getpid(fptr, &chunk->signature);
 	    break;
 #endif
 	default:

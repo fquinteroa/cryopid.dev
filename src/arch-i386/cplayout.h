@@ -1,7 +1,9 @@
 #ifndef _CPLAYOUT_H_
 #define _CPLAYOUT_H_
 
-#define TRAMPOLINE_ADDR		0x00800000   /* 8MB mark */
+#define SIGNATURE_LENGTH    32	/* # of bytes of __getpid signature to extract */
+#define TRAMPOLINE_ADDR	    0x00800000   /* 8MB mark */
+#define GETPID_HACK_ADDR    0x00801000 /* address for _getpid code */
 
 #define RESUMER_START	0x00000000 /* Lowest location resumer will be at */
 #define RESUMER_END	0x00800000 /* Highest location resumer will be at */
