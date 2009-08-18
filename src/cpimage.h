@@ -253,7 +253,7 @@ void write_chunk_fd_socket(void *fptr, struct cp_socket *socket);
 
 /* cp_vma.c */
 #ifdef __i386__
-void fetch_chunk_libcgp(struct cp_chunk** ptr);
+int fetch_chunk_libcgp(struct cp_chunk** ptr);
 #endif
 void fetch_chunks_vma(pid_t pid, int flags, struct list *l, long *bin_offset);
 void read_chunk_vma(void *fptr, int action);

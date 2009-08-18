@@ -14,6 +14,7 @@
 char tramp[100];
 extern char tramp[] __attribute__((__section__((".tramp"))));
 static int image_fd, real_fd;
+int getpid_snippet = 0; /* check the presence of __getpid signature */
 
 int verbosity = 0;
 int dump_only = 0;
@@ -58,7 +59,8 @@ static void read_process()
 	sleep(2);
 
     #ifdef __i386__
-    jump_to_getpid_hack();
+    if (getpid_snippet)
+        jump_to_getpid_hack();
     #endif
     jump_to_trampoline();
 }

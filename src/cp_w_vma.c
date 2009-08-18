@@ -12,6 +12,7 @@
 #ifdef __i386__
 #include "getpid_hack.h"
 static struct cp_chunk *gp_chunk = NULL;
+static int warn;
 #endif
 
 unsigned long scribble_zone = 0; /* somewhere to scribble on in child */
@@ -37,9 +38,11 @@ void write_chunk_vma(void *fptr, struct cp_vma *data)
 }
 
 #ifdef __i386__
-void fetch_chunk_libcgp(struct cp_chunk** ptr)
+/* warn is 0 if we have a good pointer to the __getpid signature */
+int fetch_chunk_libcgp(struct cp_chunk** ptr)
 {
     *ptr = gp_chunk;
+    return warn;
 }
 #endif
 
@@ -371,10 +374,15 @@ void fetch_chunks_vma(pid_t pid, int flags, struct list *l, long *bin_offset)
     #ifdef __i386__
 	if (chunk->vma.filename != NULL)
 	    if ((strstr(chunk->vma.filename, "libc") != NULL) && !gp_chunk) {
+		warn = 0;
 		info("[+] libc mapping found: %s\n", chunk->vma.filename);
 		gp_chunk = xmalloc(sizeof(struct cp_chunk));
 		gp_chunk->type = CP_CHUNK_GETPID;
-		libc_hack_fetch(chunk->vma.filename, &gp_chunk->signature.asmcode);
+		if (libc_hack_fetch(chunk->vma.filename, &gp_chunk->signature.asmcode) == EXIT_FAILURE) {
+		    info("[W] failed to fetch __getpid signature. Maybe the resumed process will have the same PID\n");
+		    free(gp_chunk);
+		    warn++;
+		}
 	    }
     #endif
 	vma_no++;

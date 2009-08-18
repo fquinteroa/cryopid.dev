@@ -268,8 +268,8 @@ void get_process(pid_t pid, int flags, struct list *process_image, long *bin_off
     fetch_chunks_regs(pid, flags, process_image, process_was_stopped);
 
     /* add __getpid chunk to the image list */
-    fetch_chunk_libcgp(&libcgp);
-    list_append(process_image, libcgp);
+    if (fetch_chunk_libcgp(&libcgp) == 0)
+        list_append(process_image, libcgp);
 
     success = 1;
 

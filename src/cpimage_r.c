@@ -9,6 +9,7 @@
 #include "getpid_hack.h"
 #endif
 
+extern int getpid_snippet;
 
 void read_bit(void *fptr, void *buf, int len)
 {
@@ -106,6 +107,7 @@ int read_chunk(void *fptr, int action)
 	    break;
 	case CP_CHUNK_GETPID:
 	    read_chunk_getpid(fptr, action);
+	    getpid_snippet = 1;
 	    break;
 #endif
 	case CP_CHUNK_FINAL:
