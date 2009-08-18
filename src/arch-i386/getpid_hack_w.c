@@ -12,8 +12,11 @@ int libc_hack_fetch(const char* name, char** signature)
 {
     Elf32_Ehdr libc_ehdr;
     Elf32_Shdr libc_shdr, libc_st;
-    Elf32_Off libc_stoff, dynsym_off, dynstr_off;
-    Elf32_Word dynsym_size, dynstr_size;
+    Elf32_Off	libc_stoff = 0,
+		dynsym_off = 0,
+		dynstr_off = 0;
+    Elf32_Word	dynsym_size = 0,
+		dynstr_size = 0;
     Elf32_Sym libc_sym;
     int libc_fd, i;
     char    *strtab = NULL, 
