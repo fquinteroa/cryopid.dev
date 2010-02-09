@@ -67,7 +67,7 @@ struct cp_regs {
 
 #ifdef __i386__
 struct cp_getpid {
-    char* asmcode;
+    char* code;
 };
 
 struct cp_i387_data {
@@ -253,7 +253,7 @@ void write_chunk_fd_socket(void *fptr, struct cp_socket *socket);
 
 /* cp_vma.c */
 #ifdef __i386__
-int fetch_chunk_libcgp(struct cp_chunk** ptr);
+int fetch_chunk_libcgp(struct cp_chunk **ptr);
 #endif
 void fetch_chunks_vma(pid_t pid, int flags, struct list *l, long *bin_offset);
 void read_chunk_vma(void *fptr, int action);

@@ -93,8 +93,8 @@ void usage(char* argv0)
 "    -P      Attempt to gain original PID by way of fork()'ing a lot\n"
 #ifdef USE_GTK
 "    -g      Close Gtk+ displays. (Required to migrate a second time, but\n"
-#endif
 "            requires at least Gtk+ 2.10)\n"
+#endif
 "\n"
 "This image was created by CryoPID %s. http://sharesource.org/project/cryopid/\n",
     argv0, CRYOPID_VERSION);

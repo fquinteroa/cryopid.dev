@@ -186,6 +186,7 @@ static void *cp_malloc_hook(size_t size, const void *caller)
 {
     static long next_free_addr = MALLOC_START;
 
+    //printf("[old] using custom malloc. request in size: %d\n", size);
     int full_len = (size + (_getpagesize-1)) & ~(_getpagesize-1);
 
     if (next_free_addr + full_len > MALLOC_END)
@@ -194,6 +195,8 @@ static void *cp_malloc_hook(size_t size, const void *caller)
     void *p = mmap((void*)next_free_addr, full_len, PROT_READ|PROT_WRITE,
 	    MAP_FIXED|MAP_PRIVATE|MAP_ANONYMOUS, 0, 0);
 	    
+    /*printf("[old] pointer value [dec]: %u, pointer value [x]: %x\n", 
+	(unsigned int) p, (unsigned int) p);*/
     assert(p == (void*)next_free_addr);
     next_free_addr += full_len;
     return p;
