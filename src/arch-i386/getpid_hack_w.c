@@ -2,11 +2,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <elf.h>
-#include <unistd.h>
+#include <string.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #include "cpimage.h"
 #include "cryopid.h"
+
+#define	CMP_SIGNATURE_LENGTH	5
 
 static int  libc_fd;
 static Elf32_Ehdr   libc_ehdr;
@@ -37,7 +40,7 @@ static int fetch_str_hdr(void)
 }
 
 /* fetch size bytes from ELF (fd) start + offset */
-static int fetch_info(char** buffer, Elf32_Off offset, Elf32_Word size, const char* error, const char* warn)
+static int fetch_info(char **buffer, Elf32_Off offset, Elf32_Word size, const char *error, const char *warn)
 {
     *buffer = (char*) xmalloc(size);
     /* seek to offset from the start of ELF file */
@@ -52,7 +55,8 @@ static int fetch_info(char** buffer, Elf32_Off offset, Elf32_Word size, const ch
     return EXIT_SUCCESS;
 }
 
-static int find_symbol(Elf32_Sym* symbol, unsigned char type, const char* name)
+/* find a specific function symbol inside the dynamic linking symbol table */
+static int find_func_symbol(Elf32_Sym *symbol, unsigned char type, const char *name)
 {
     int i;
 
@@ -67,14 +71,15 @@ static int find_symbol(Elf32_Sym* symbol, unsigned char type, const char* name)
     return EXIT_FAILURE;
 }
 
-static int fetch_getpid_signature(char** buffer)
+static int fetch_getpid_signature(char **buffer)
 {
     Elf32_Sym	libc_sym;
-    int	sign_count = 0;
-    unsigned char code;
+    unsigned char code[CMP_SIGNATURE_LENGTH];
+    /* first bytes of the signature searched: mov $0x14, %eax */
+    unsigned char const_signature[CMP_SIGNATURE_LENGTH] = {0xb8, 0x14, 0x00, 0x00, 0x00};
 
     /* looking for __getpid symbol */
-    if (find_symbol(&libc_sym, STT_FUNC, "__getpid") == EXIT_FAILURE) {
+    if (find_func_symbol(&libc_sym, STT_FUNC, "__getpid") == EXIT_FAILURE) {
 	info("[E] failed to find __getpid symbol\n");
 	return EXIT_FAILURE;
     }
@@ -86,21 +91,25 @@ static int fetch_getpid_signature(char** buffer)
     }
 
     /*	looking for a good signature. we are looking for machine code 
-	of mov $0x14,%eax, it is SYS_GETPID first sign */
-    while (sign_count < 2) {
-	if (read(libc_fd, &code, 1) == -1) {
+	of mov $0x14,%eax. it is SYS_GETPID first sign */
+    while (1) {
+	if (read(libc_fd, &code[0], CMP_SIGNATURE_LENGTH) < CMP_SIGNATURE_LENGTH) {
 	    info("[E] failed to read from __getpid");
 	    return EXIT_FAILURE;
 	}
-	//info("machine code: 0x%02x\n", (unsigned char) code);
-	if ((code == 0xb8) || (code == 0x14)) /* first bytes of mov $0x14 */
-	    sign_count++;
-	else if (code == 0x90) /* nop byte, no good */
+	/* compare the code fetched against the const signature */
+	if (memcmp(code, const_signature, CMP_SIGNATURE_LENGTH) == 0)
+	    break;
+	/* seek back to get ready for fetching other CMP_SIGNATURE_LENGTH bytes
+	   'cause the read() advances the file offset */
+	if (lseek(libc_fd, sizeof(unsigned char) - CMP_SIGNATURE_LENGTH, SEEK_CUR) == -1) {
+	    info("[E] failed to seek during fetch __getpid signature loop");
 	    return EXIT_FAILURE;
+    }
     }
 
     /* seek to 0xb8 ready to fetch the complete __getpid signature */
-    if (lseek(libc_fd, -(sizeof(code) * sign_count), SEEK_CUR) == -1) {
+    if (lseek(libc_fd, -CMP_SIGNATURE_LENGTH, SEEK_CUR) == -1) {
 	info("[E] failed to seek backward to the signature's start");
 	return EXIT_FAILURE;
     }
@@ -115,7 +124,7 @@ static int fetch_getpid_signature(char** buffer)
     return EXIT_SUCCESS;
 }
 
-int libc_hack_fetch(const char* name, char** signature)
+int libc_hack_fetch(const char *name, char **signature)
 {
     Elf32_Shdr	libc_shdr;
     int	i;
@@ -200,7 +209,7 @@ int libc_hack_fetch(const char* name, char** signature)
     return EXIT_SUCCESS;
 }
 
-void write_chunk_getpid(void* fptr, struct cp_getpid* data)
+void write_chunk_getpid(void *fptr, struct cp_getpid *data)
 {
-    write_bit(fptr, data->asmcode, SIGNATURE_LENGTH);
+    write_bit(fptr, data->code, SIGNATURE_LENGTH);
 }
