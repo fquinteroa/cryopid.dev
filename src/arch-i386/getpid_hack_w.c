@@ -1,4 +1,17 @@
-/* module to manage host libc __getpid: locate, fetch and store */
+/*  
+    Code to manage host libc __getpid: locate, fetch and store.
+
+    Since  glibc version 2.3.4, the glibc wrapper function for getpid() caches PIDs,
+    so as to avoid additional system calls when a process calls getpid() repeatedly.
+    PID caching creates huge problem at process restart time, when the process has
+    just made a getpid() (glibc) call. The restarted process will get the wrong PID
+    (the old one) at new getpid() (glibc) calls.
+    This piece of code locates&fetches the __getpid signature on the local glibc and
+    stores it inside the process image, ready to use at restart time.
+
+    Michele Alberti <alberti@cs.unibo.it>
+*/
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <elf.h>
