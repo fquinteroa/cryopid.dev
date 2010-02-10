@@ -1,4 +1,14 @@
-/* module to manage host libc __getpid stored in the image (ELF) file */
+/* 
+    Code to manage host libc __getpid stored in the image (ELF) file.
+
+    This piece of code fetches the __getpid signature stored in the process image and
+    makes the restarted process to execute it.
+    The result is the refresh of the PID cache of the process that now can get the 
+    right PID at any getpid() (glibc) call.
+
+    Michele Alberti <alberti@cs.unibo.it>
+*/
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -31,7 +41,7 @@ static void libc_hack_load(char *data)
 	*dest++=0xba;*dest++=0x00;*dest++=0x00;*dest++=0x00;*dest++=0x00; /* mov $0x00, %edx */
 	*dest++=0xb9;*dest++=0x00;*dest++=0x00;*dest++=0x00;*dest++=0x00; /* mov $0x00, %ecx */
 
-	/* insert the assembly code of __getpid */
+	/* insert the machine code of __getpid */
 	memcpy(dest, data, SIGNATURE_LENGTH);
     }
 
