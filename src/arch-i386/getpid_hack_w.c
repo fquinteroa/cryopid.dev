@@ -76,7 +76,9 @@ static int fetch_getpid_signature(char **buffer)
     Elf32_Sym	libc_sym;
     unsigned char code[CMP_SIGNATURE_LENGTH];
     /* first bytes of the signature searched: mov $0x14, %eax */
-    unsigned char const_signature[CMP_SIGNATURE_LENGTH] = {0xb8, 0x14, 0x00, 0x00, 0x00};
+    const unsigned char const_signature[CMP_SIGNATURE_LENGTH] = {0xb8, 0x14, 0x00, 0x00, 0x00};
+    /* nop signature, end of __getpid function */
+    const unsigned char const_null_signature[CMP_SIGNATURE_LENGTH] = {0xc3, 0x90, 0x90, 0x90, 0x90};
 
     /* looking for __getpid symbol */
     if (find_func_symbol(&libc_sym, STT_FUNC, "__getpid") == EXIT_FAILURE) {
@@ -100,6 +102,9 @@ static int fetch_getpid_signature(char **buffer)
 	/* compare the code fetched against the const signature */
 	if (memcmp(code, const_signature, CMP_SIGNATURE_LENGTH) == 0)
 	    break;
+	/* end of __getpid, no good */
+	if (memcmp(code, const_null_signature, CMP_SIGNATURE_LENGTH) == 0)
+	    return EXIT_FAILURE;
 	/* seek back to get ready for fetching other CMP_SIGNATURE_LENGTH bytes
 	   'cause the read() advances the file offset */
 	if (lseek(libc_fd, sizeof(unsigned char) - CMP_SIGNATURE_LENGTH, SEEK_CUR) == -1) {
