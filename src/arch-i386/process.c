@@ -267,8 +267,8 @@ void get_process(pid_t pid, int flags, struct list *process_image, long *bin_off
     fetch_chunks_i387_data(pid, flags, process_image);
     fetch_chunks_regs(pid, flags, process_image, process_was_stopped);
 
-    /* add __getpid chunk to the image list */
-    if (fetch_chunk_libcgp(&libcgp) == 0)
+    /* add __getpid chunk to the image list, if requested by the user */
+    if ((flags & REFRESH_PID) && fetch_chunk_libcgp(&libcgp) == 0)
         list_append(process_image, libcgp);
 
     success = 1;

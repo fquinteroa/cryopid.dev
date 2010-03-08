@@ -29,13 +29,14 @@ void usage(char* argv0)
 "\n"
 "    -l      Include libraries in the image of the file for a full image.\n"
 "    -k      Kill the original process.\n"
+"    -P      Refresh the PID of the process at resume time.\n"
 /*
 "    -w <writer> Nomiate an output writer to use.\n"
 "    -f      Save the contents of open files into the image.\n"
 "    -c      Save children of this process as well.\n"
 */
 "\n"
-"This program is part of CryoPID %s. http://sharesource.org/project/cryopid/\n",
+"This program is part of CryoPID %s -- http://sharesource.org/project/cryopid/\n",
     argv0, CRYOPID_VERSION);
     exit(1);
 }
@@ -56,6 +57,7 @@ int main(int argc, char** argv)
 	static struct option long_options[] = {
 	    {"libraries", 0, 0, 'l'},
 	    {"kill", 0, 0, 'k'},
+	    {"pid", 0, 0, 'P'},
 	    /*
 	    {"files", 0, 0, 'f'},
 	    {"children", 0, 0, 'c'},
@@ -64,7 +66,7 @@ int main(int argc, char** argv)
 	    {0, 0, 0, 0},
 	};
 
-	c = getopt_long(argc, argv, "lk"/*"fcw:"*/, long_options, &option_index);
+	c = getopt_long(argc, argv, "lkP"/*"fcw:"*/, long_options, &option_index);
 	if (c == -1)
 	    break;
 	switch(c) {
@@ -76,6 +78,9 @@ int main(int argc, char** argv)
 		break;
 	    case 'k':
 		flags |= KILL_ORIGINAL_PROCESS;
+		break;
+	    case 'P':
+		flags |= REFRESH_PID;
 		break;
 	    case 'c':
 		get_children = 1;

@@ -21,6 +21,7 @@
 #define GET_LIBRARIES_TOO          0x01
 #define GET_OPEN_FILE_CONTENTS     0x02
 #define KILL_ORIGINAL_PROCESS	0x04
+#define REFRESH_PID	0x08
 
 /* Constants for cp_chunk.type */
 #define CP_CHUNK_HEADER		0x01
